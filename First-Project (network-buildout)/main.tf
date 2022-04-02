@@ -1,8 +1,9 @@
 terraform {
   backend "s3" {
-    bucket = "terraform-states"
-    key    = "vpc-terraform.tfstate"
-    region = "us-east-1"
+    bucket = "terraform-state-apr-2022-1a4f"
+    key    = "network-buildout/json-terraform.tfstate"
+    region = "ap-southeast-1"
+    #profile = "my_profile" # 'default' profile if not specified
   }
   required_providers {
     aws = {
@@ -12,15 +13,19 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  shared_config_files      = ["/Users/%my_username%/.aws/config"]
+  shared_credentials_files = ["/Users/%my_username%/.aws/credentials"]
+  region                   = "ap-southeast-1"
+  #profile = "my_profile" #'default' profile if not specified
 }
+
 
 resource "aws_vpc" "terraformhardway-platform" {
   cidr_block                       = "192.168.0.0/16"
   assign_generated_ipv6_cidr_block = true
 
   tags = {
-    Name        = "companya-${var.environment}-vpc"
+    Name        = "terraform-the-hard-way-${var.environment}-vpc"
     Environment = var.environment
     Provisioner = "terraform"
   }
@@ -30,7 +35,7 @@ resource "aws_internet_gateway" "terraformhardway-platform-vpc-gateway" {
   vpc_id = aws_vpc.terraformhardway-platform.id
 
   tags = {
-    Name        = "companya-${var.environment}-gw"
+    Name        = "terraform-the-hard-way-${var.environment}-gw"
     Environment = var.environment
     Provisioner = "terraform"
   }
@@ -50,10 +55,10 @@ resource "aws_subnet" "privatesubnet" {
   vpc_id                  = aws_vpc.terraformhardway-platform.id
   cidr_block              = "192.168.1.0/24"
   map_public_ip_on_launch = false
-  availability_zone       = "us-west-1b"
+  availability_zone       = "ap-southeast-1b"
 
   tags = {
-    Name        = "companya-${var.environment}-private_subnet_d_one"
+    Name        = "terraform-the-hard-way-${var.environment}-private_subnet_d_one"
     Environment = var.environment
     Provisioner = "terraform"
   }
@@ -67,10 +72,10 @@ resource "aws_subnet" "publicsubnet" {
   vpc_id                  = aws_vpc.terraformhardway-platform.id
   cidr_block              = "192.168.4.0/24"
   map_public_ip_on_launch = true
-  availability_zone       = "us-west-1b"
+  availability_zone       = "ap-southeast-1b"
 
   tags = {
-    Name        = "companya-${var.environment}-public_subnet_d_one"
+    Name        = "terraform-the-hard-way-${var.environment}-public_subnet_d_one"
     Environment = var.environment
     Provisioner = "terraform"
   }
@@ -90,7 +95,7 @@ resource "aws_nat_gateway" "nat_a" {
   subnet_id     = aws_subnet.publicsubnet.id
 
   tags = {
-    Name        = "companya-${var.environment}-nat_gateway_a"
+    Name        = "terraform-the-hard-way-${var.environment}-nat_gateway_a"
     Environment = var.environment
     Provisioner = "terraform"
   }
@@ -105,7 +110,7 @@ resource "aws_route_table" "privateroute" {
   }
 
   tags = {
-    Name        = "companya-${var.environment}-private_route_table"
+    Name        = "terraform-the-hard-way-${var.environment}-private_route_table"
     Environment = var.environment
     Provisioner = "terraform"
   }
@@ -123,6 +128,6 @@ output "vpc_security_group_id" {
 output "vpcid" {
   value = aws_vpc.terraformhardway-platform.id
 }
-output "security-group-id" {
-  value = aws_security_group.allow_incoming.id
-}
+# output "security-group-id" {
+#   value = aws_security_group.allow_incoming.id
+# }
